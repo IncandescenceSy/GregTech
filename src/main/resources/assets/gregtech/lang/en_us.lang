@@ -5011,6 +5011,7 @@ metaitem.cover.digital.mode.fluid.enabled=Fluid Mode enabled
 
 gregtech.machine.monitor_screen.name=Monitor Screen
 
+gregtech.machine.tierskip=Recipe tier is limited to Energy Hatch tier + §f%s§7.
 
 # Multiblock Tooltips
 gregtech.machine.primitive_water_pump.tooltip=Endervoir at Home

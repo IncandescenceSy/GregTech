@@ -14,10 +14,16 @@ import gregtech.api.recipes.RecipeMap;
 import gregtech.api.recipes.logic.OCParams;
 import gregtech.api.recipes.logic.OCResult;
 import gregtech.api.recipes.properties.RecipePropertyStorage;
+import gregtech.api.util.GTLog;
 import gregtech.api.util.GTUtility;
 import gregtech.common.ConfigHolder;
 
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
@@ -29,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static gregtech.api.recipes.logic.OverclockingLogic.subTickParallelOC;
+import static java.lang.Math.max;
 
 public class MultiblockRecipeLogic extends AbstractRecipeLogic {
 
@@ -37,12 +44,25 @@ public class MultiblockRecipeLogic extends AbstractRecipeLogic {
     protected IItemHandlerModifiable currentDistinctInputBus;
     protected List<IItemHandlerModifiable> invalidatedInputList = new ArrayList<>();
 
+    protected int tierskipLimit;
+
     public MultiblockRecipeLogic(RecipeMapMultiblockController tileEntity) {
         super(tileEntity, tileEntity.recipeMap);
     }
 
+    public MultiblockRecipeLogic(RecipeMapMultiblockController tileEntity, int tierskipLimit_) {
+        super(tileEntity, tileEntity.recipeMap);
+        this.tierskipLimit = tierskipLimit_;
+    }
+
     public MultiblockRecipeLogic(RecipeMapMultiblockController tileEntity, boolean hasPerfectOC) {
         super(tileEntity, tileEntity.recipeMap, hasPerfectOC);
+        this.tierskipLimit = 0;
+    }
+
+    public MultiblockRecipeLogic(RecipeMapMultiblockController tileEntity, int tierskipLimit_, boolean hasPerfectOC) {
+        super(tileEntity, tileEntity.recipeMap, hasPerfectOC);
+        this.tierskipLimit = tierskipLimit_;
     }
 
     @Override
@@ -355,7 +375,7 @@ public class MultiblockRecipeLogic extends AbstractRecipeLogic {
                 return voltage;
             }
         }
-        return Math.max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage());
+        return max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage());
     }
 
     @NotNull
@@ -419,13 +439,13 @@ public class MultiblockRecipeLogic extends AbstractRecipeLogic {
             // Machine Multiblocks
             if (energyContainer instanceof EnergyContainerList energyList) {
                 long highestVoltage = energyList.getHighestInputVoltage();
-                if (energyList.getNumHighestInputContainers() > 1) {
-                    // allow tier + 1 if there are multiple hatches present at the highest tier
-                    int tier = GTUtility.getTierByVoltage(highestVoltage);
-                    return GTValues.V[Math.min(tier + 1, GTValues.MAX)];
-                } else {
-                    return highestVoltage;
-                }
+                int tier = GTUtility.getTierByVoltage(highestVoltage);
+                long amps = energyList.getInputAmperage();
+                // todo log call can be replaced with something less intensive
+                int tierskip = (int) Math.min((Math.log(amps) / GTValues.LOG_4), tierskipLimit);
+                //GTLog.logger.info("amps: " + amps);
+                //GTLog.logger.info("tierskip: " + tierskip);
+                return GTValues.V[Math.min(tier + tierskip, GTValues.MAX)];
             } else {
                 return energyContainer.getInputVoltage();
             }

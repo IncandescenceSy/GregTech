@@ -816,9 +816,9 @@ public class MetaTileEntities {
         for (int i = 0; i < endPos; i++) {
             String voltageName = GTValues.VN[i].toLowerCase();
             ENERGY_INPUT_HATCH[i] = registerMetaTileEntity(1210 + i,
-                    new MetaTileEntityEnergyHatch(gregtechId("energy_hatch.input." + voltageName), i, 2, false));
+                    new MetaTileEntityEnergyHatch(gregtechId("energy_hatch.input." + voltageName), i, 1, false));
             ENERGY_OUTPUT_HATCH[i] = registerMetaTileEntity(1225 + i,
-                    new MetaTileEntityEnergyHatch(gregtechId("energy_hatch.output." + voltageName), i, 2, true));
+                    new MetaTileEntityEnergyHatch(gregtechId("energy_hatch.output." + voltageName), i, 1, true));
 
             if (i >= GTValues.IV) {
                 int baseId = (i <= GTValues.UHV ? 1240 : 1820);
